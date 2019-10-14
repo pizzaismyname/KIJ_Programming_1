@@ -71,7 +71,7 @@ void readPlaintext()
 {
     char ch = '\0';
     int index = 0;
-    cout << "Masukkan nama file plaintext (dan ekstensi): ";
+    cout << "Masukkan nama file untuk dienkripsi (dan ekstensi): ";
     string filename;
     cin >> filename;
     ifstream plaintext;

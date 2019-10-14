@@ -71,7 +71,7 @@ void readCiphertext()
 {
     char ch = '\0';
     int index = 0;
-    cout << "Masukkan nama file ciphertext (dan ekstensi): ";
+    cout << "Masukkan nama file untuk didekripsi (dan ekstensi): ";
     string filename;
     cin >> filename;
     ifstream ciphertext;
