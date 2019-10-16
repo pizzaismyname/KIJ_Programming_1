@@ -18,18 +18,26 @@ class AES():
         key_words = gen_key(key, self.modulus, self.round_const, self.Sbox, round_key_count)
 
         round_keys = [0 for i in range(self.rounds+1)]
+        key_schedule = list()
 
         for i in range(self.rounds+1):
             round_keys[i] = key_words[i*4] + key_words[i*4+1] + key_words[i*4+2] + key_words[i*4+3]
             round_keys[i] = round_keys[i].get_bitvector_in_hex()
-
+        
+        for _, k in enumerate(key_words):
+            int_keys = list()
+            for i in range(4):
+                int_keys.append(k[i*8:i*8+8].intValue())
+            key_schedule.append(int_keys)
+        
+        self.key_schedule = key_schedule
         # for round_key in round_keys:
         #     print(round_key)
         # print(round_keys[0])
         for i in range(len(round_keys)):
             round_keys[i] = text2matrix(int(round_keys[i], 16))
         self.round_keys = round_keys[0]
-        print(round_keys[0])
+        # print(round_keys[0])
         # for i in range(1, 10):
         #     print(self.round_keys[i*4:(i+1)*4])
         # for i in range(4):
@@ -40,18 +48,18 @@ class AES():
         # print(len(self.__plaintext))
         # if len(self.__plaintext)//8 != 16:
         #     raise ValueError('block size not correct')
-        statearray = self.round_key(self.__plaintext, self.round_keys[:4])
+        statearray = self.round_key(self.__plaintext, self.key_schedule[:4])
         
         for i in range(1, self.rounds):
             self.subBytes(statearray)
             self.shiftRow(statearray)
             mixed = self.mixColumn(statearray)
-            statearray = self.round_key(mixed, self.round_keys[i*4:(i+1)*4])
+            statearray = self.round_key(mixed, self.key_schedule[i*4:(i+1)*4])
 
         # final round
         self.subBytes(statearray)
         self.shiftRow(statearray)
-        self.round_key(statearray, self.round_keys[40:])
+        self.round_key(statearray, self.key_schedule[40:])
 
         return statearray
 
@@ -171,6 +179,13 @@ def text2matrix(text):
             matrix[i // 4].append(byte)
     return matrix
 
+def matrix2text(matrix):
+    text = 0
+    for i in range(4):
+        for j in range(4):
+            text |= (matrix[i][j] << (120 - 8 * (4 * i + j)))
+    return text
+
 def main():
     key_input = input('Input the key: ')
     plaintext = input('Input plaintext: ')
@@ -205,8 +220,11 @@ def main():
     # print(plaintext)
 
     aes = AES(key_bits, plaintext)
+    # test = matrix2text(aes.encrypt())
     test = aes.encrypt()
-    # print(test)
+    tmp = []
+    for i in range(len(test)):
+        print(test[i])
 
 
 
