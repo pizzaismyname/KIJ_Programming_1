@@ -71,14 +71,15 @@ void readCiphertext()
 {
     char ch = '\0';
     int index = 0;
-    cout << "Masukkan nama file untuk didekripsi (dan ekstensi): ";
-    string filename;
-    cin >> filename;
-    ifstream ciphertext;
-    ciphertext.open(filename);
-    while (ciphertext >> ch)
+    cout << "Masukkan teks untuk didekripsi: ";
+    getchar();
+    while (ch = getchar())
     {
-        if (ch == ' ' || ch == '\n')
+        if (ch == '\n')
+        {
+            break;
+        }
+        if (ch == ' ')
         {
             continue;
         }
@@ -89,7 +90,6 @@ void readCiphertext()
         words[index] = toupper(ch);
         index++;
     }
-    ciphertext.close();
 }
 
 void splitToDigraphs()
@@ -156,13 +156,12 @@ void decrypt()
 
 void writePlaintext()
 {
-    ofstream plaintext;
-    plaintext.open("decrypted.txt");
+    cout << "Hasil dekripsi teks:\n";
     for (int i = 0; i < digraph.size(); i++)
     {
-        plaintext << digraph[i].first << digraph[i].second;
+        cout << digraph[i].first << digraph[i].second;
     }
-    plaintext.close();
+    cout << endl;
 }
 
 int main()
