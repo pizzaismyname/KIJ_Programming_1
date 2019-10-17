@@ -1,4 +1,5 @@
 import itertools as it
+from time import sleep
 from initial import *
 
 def encrypt(key, text):
@@ -14,7 +15,8 @@ def encrypt(key, text):
         leftKey, rightKey = leftKey[shiftMat[i]:] + leftKey[:shiftMat[i]], rightKey[shiftMat[i]:] + rightKey[:shiftMat[i]]
         tmp = leftKey + rightKey
         keyBit.append([tmp[i-1] for i in permutChoice2])
-
+    sleep(3)
+    
     print("Jalankan setiap ronde....")
     textBlock = [text[i:i+8] for i in range(0, len(text), 8)]
     for block in textBlock:
@@ -35,7 +37,7 @@ def encrypt(key, text):
         left = right
         right = tmp
     result += [(right+left)[i-1] for i in finalPermut]
-    
+    sleep(3)
     hasil = ''.join([chr(int(y,2)) for y in [''.join([str(x) for x in _bytes]) for _bytes in  [result[i:i+8] for i in range(0, len(result), 8)]]])
     
     print("Selesai!")
