@@ -1,12 +1,14 @@
 import encrypt as enc
+import decrypt as dec
 import initial as init
 
 
 key = input("Enter your key: ")
 plainText = input("Enter your plain text: ")
 if init.key_check(key) == True:
-    
     if len(plainText) % 8 != 0:
         plainText += " "
     cipherText = enc.encrypt(key, plainText)
-    print("Cipher text yang dihasilkan> ", cipherText)
+    print("Cipher text yang dihasilkan> %r" %cipherText)
+    hasilDec = dec.decrypt(key, cipherText)
+    print("Hasil dekripsi menghasilkan> ", hasilDec)
