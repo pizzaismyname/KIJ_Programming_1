@@ -1,7 +1,7 @@
 import time
 from initial import *
 def encrypt(key, text):
-    
+    print("---------------------PROSES ENKRIPSI------------------------")
     print("Generate key....")
     keyBit = list()
     newKey = list()
