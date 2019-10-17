@@ -9,4 +9,4 @@ if init.key_check(key) == True:
     if len(plainText) % 8 != 0:
         plainText += " "
     cipherText = enc.encrypt(key, plainText)
-    print(cipherText)
+    print("Cipher text yang dihasilkan> ", cipherText)
