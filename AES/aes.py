@@ -13,7 +13,14 @@ class AES():
         self.modulus = BitVector(bitstring='100011011')
         self.Sbox, inv_Sbox = gen_Sbox(self.modulus)
         self.inv_Sbox = inv_Sbox.copy()
-        # print(self.inv_Sbox)
+        
+        print(self.Sbox)
+        # tmp = []
+        # for i in range(len(self.Sbox)):
+        #     tmp[i] = hex(self.Sbox[i])
+        
+        # for i in range(len(self.Sbox)):
+        #     print(tmp[i])
 
         round_key_count = (self.rounds + 1) * 4
         key_words = gen_key(key, self.modulus, self.round_const, self.Sbox, round_key_count)
@@ -128,7 +135,7 @@ class AES():
 
         for i in range(4):
             for j in range(4):
-                tmp[j][i] = op[i][j] ^ statearray[i][j]
+                tmp[i][j] = op[j][i] ^ statearray[j][i]
 
         return tmp
 
@@ -143,7 +150,7 @@ class AES():
 
         for i in range(4):
             for j in range(4):
-                tmp[j][i] = op[i][j] ^ statearray[i][j]
+                tmp[i][j] = op[j][i] ^ statearray[j][i]
 
         return tmp
 
@@ -159,6 +166,7 @@ def gen_Sbox(modulus):
             b_prime = BitVector(intVal=i, size=8).gf_MI(modulus, 8)
         b1, b2, b3, b4 = [b_prime.deep_copy() for _ in range(4)]
         b_prime ^= (b1 >> 4) ^ (b2 >> 5) ^ (b3 >> 6) ^ (b4 >> 7) ^ c
+        # sbox.append(hex(b_prime.int_val()))
         sbox.append(int(b_prime))
 
         inv_b = BitVector(intVal=i, size=8)
@@ -166,9 +174,11 @@ def gen_Sbox(modulus):
         inv_b = (inv_b1 >> 2) ^ (inv_b2 >> 5) ^ (inv_b3 >> 7) ^ d
         check_type = inv_b.gf_MI(modulus, 8)
         if(isinstance(check_type, BitVector)):
-            b = check_type
+            inv_b = check_type
         else:
-            b = 0
+            inv_b = 0
+        # print(type(inv_b.int_val()))
+        # inv_sbox.append(hex(inv_b.int_val()))
         inv_sbox.append(int(inv_b))
     return sbox, inv_sbox
 
