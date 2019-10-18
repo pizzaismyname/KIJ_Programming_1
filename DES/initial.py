@@ -98,11 +98,16 @@ finalPermut = [40, 8, 48, 16, 56, 24, 64, 32,
 shiftMat = [1,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1]
 
 def key_check(key):
-    if len(key) != 8:
-        print("Key harus memiliki panjang 8")
-        return False
+    if len(key) < 8:
+        # print("Key harus memiliki panjang 8")
+        # return False
+        key += '0'*(56//8-len(key)+1)
+        # print(len(key))
+        return key
+    elif len(key) > 8:
+        return key[:8]
     else:
-        return True
+        return key
 
 def substitute(sub):
     subBlock = [sub[i:i+6] for i in range(0, len(sub), 6)]
