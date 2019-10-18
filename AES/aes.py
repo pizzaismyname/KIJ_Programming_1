@@ -11,8 +11,9 @@ class AES():
         self.__key = key
         self.round_const = BitVector(intVal=0x01, size=8)
         self.modulus = BitVector(bitstring='100011011')
-        self.Sbox = gen_Sbox(self.modulus)
-        # print(self.Sbox)
+        self.Sbox, inv_Sbox = gen_Sbox(self.modulus)
+        self.inv_Sbox = inv_Sbox.copy()
+        # print(self.inv_Sbox)
 
         round_key_count = (self.rounds + 1) * 4
         key_words = gen_key(key, self.modulus, self.round_const, self.Sbox, round_key_count)
@@ -63,8 +64,20 @@ class AES():
 
         return statearray
 
-    def decrypt(self):
-        pass
+    def decrypt(self, ciphertext):
+        statearray = self.round_key(ciphertext, self.key_schedule[40:])
+        
+        for i in range(self.rounds-1, 0, -1):
+            self.invShiftRow(statearray)
+            self.invSubBytes(statearray)
+            statearray = self.round_key(statearray, self.key_schedule[i*4:(i+1)*4])
+            statearray = self.invMixColumn(statearray)
+
+        self.invShiftRow(statearray)
+        self.invSubBytes(statearray)
+        statearray = self.round_key(statearray, self.key_schedule[:4])
+
+        return statearray
 
     def round_key(self, text, keys):
         # print(type(keys[0][0]), type(text[0][0]))
@@ -85,6 +98,10 @@ class AES():
                 text[i][j] = self.Sbox[text[i][j]]
         #     tmp2 += BitVector(intValue=self.Sbox[tmp[i*8:i*8+8]], size=8)
         # print(tmp2)
+    def invSubBytes(self, ciphertext):
+        for i in range(4):
+            for j in range(4):
+                ciphertext[i][j] = self.inv_Sbox[ciphertext[i][j]]
 
     def shiftRow(self, statearray):
         statearray[0][1], statearray[1][1], statearray[2][1], statearray[3][1] = statearray[1][1], statearray[2][1], statearray[3][1], statearray[0][1]
@@ -92,6 +109,13 @@ class AES():
         statearray[0][2], statearray[1][2], statearray[2][2], statearray[3][2] = statearray[2][2], statearray[3][2], statearray[0][2], statearray[1][2]
 
         statearray[0][3], statearray[1][3], statearray[2][3], statearray[3][3] = statearray[3][3], statearray[0][3], statearray[1][3], statearray[2][3]
+
+    def invShiftRow(self, statearray):
+        statearray[0][1], statearray[1][1], statearray[2][1], statearray[3][1] = statearray[3][1], statearray[0][1], statearray[1][1], statearray[2][1]
+
+        statearray[0][2], statearray[1][2], statearray[2][2], statearray[3][2] = statearray[2][2], statearray[3][2], statearray[0][2], statearray[1][2]
+
+        statearray[0][3], statearray[1][3], statearray[2][3], statearray[3][3] = statearray[1][3], statearray[2][3], statearray[3][3], statearray[0][3]
 
     def mixColumn(self, statearray):
         tmp = [[0 for _ in range(4)] for _ in range(4)]
@@ -104,12 +128,12 @@ class AES():
 
         for i in range(4):
             for j in range(4):
-                tmp[i][j] = op[i][j] ^ statearray[i][j]
+                tmp[j][i] = op[i][j] ^ statearray[i][j]
 
         return tmp
 
     def invMixColumn(self, statearray):
-        tmp = list()
+        tmp = [[0 for _ in range(4)] for _ in range(4)]
         op = [
             [0x0E, 0x0B, 0x0D, 0x09],
             [0x09, 0x0E, 0x0B, 0x0D],
@@ -119,14 +143,15 @@ class AES():
 
         for i in range(4):
             for j in range(4):
-                tmp[i][j] = op[i][j] ^ statearray[i][j]
+                tmp[j][i] = op[i][j] ^ statearray[i][j]
 
         return tmp
 
 def gen_Sbox(modulus):
     sbox = list()
+    inv_sbox = list()
     c = BitVector(bitstring='01100011')
-    
+    d = BitVector(bitstring='00000101')
     for i in range(256):
         if i == 0:
             b_prime = BitVector(intVal = 0, size = 8)
@@ -135,7 +160,17 @@ def gen_Sbox(modulus):
         b1, b2, b3, b4 = [b_prime.deep_copy() for _ in range(4)]
         b_prime ^= (b1 >> 4) ^ (b2 >> 5) ^ (b3 >> 6) ^ (b4 >> 7) ^ c
         sbox.append(int(b_prime))
-    return sbox
+
+        inv_b = BitVector(intVal=i, size=8)
+        inv_b1, inv_b2, inv_b3 = [inv_b.deep_copy() for _ in range(3)]
+        inv_b = (inv_b1 >> 2) ^ (inv_b2 >> 5) ^ (inv_b3 >> 7) ^ d
+        check_type = inv_b.gf_MI(modulus, 8)
+        if(isinstance(check_type, BitVector)):
+            b = check_type
+        else:
+            b = 0
+        inv_sbox.append(int(inv_b))
+    return sbox, inv_sbox
 
 def gen_Gfunc(keyword, rconst, Sbox, modulus):
     tmp = keyword.deep_copy()
@@ -221,11 +256,13 @@ def main():
 
     aes = AES(key_bits, plaintext)
     # test = matrix2text(aes.encrypt())
-    test = aes.encrypt()
-    tmp = []
-    for i in range(len(test)):
-        print(test[i])
-
-
+    # test = aes.encrypt()
+    # tmp = []
+    # for i in range(len(test)):
+    #     print(test[i])
+    # test = int(hex(test), 16)
+    # print(matrix2text(aes.encrypt()))
+    dec = aes.decrypt(aes.encrypt())
+    print(matrix2text(dec))
 
 main()
